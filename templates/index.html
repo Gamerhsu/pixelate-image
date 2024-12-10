@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>圖片像素化處理器</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 左側：數值調整區 -->
+        <div class="controls">
+            <h1>Image Pixelater</h1>
+            <label>
+                Upload Image：
+                <input type="file" id="imageInput" accept=".jpg, .jpeg, .png">
+            </label>
+            <label>
+                Pixel：<span id="pixelValue">10</span>
+                <input type="range" id="pixelSize" min="2" max="50" value="10">
+            </label>
+            <label>
+                Consrast：<span id="contrastValue">100%</span>
+                <input type="range" id="contrast" min="0" max="200" value="100">
+            </label>
+            <label>
+                saturation：<span id="saturationValue">100%</span>
+                <input type="range" id="saturation" min="0" max="200" value="100">
+            </label>
+            <button id="downloadButton">Download Image</button>
+        </div>
+
+        <!-- 右側：畫布 -->
+        <canvas id="previewCanvas"></canvas>
+    </div>
+
+    <script src="/static/script.js"></script>
+    
+</body>
+</html>

@@ -1,0 +1,61 @@
+/* 基本樣式 */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-image: linear-gradient(to top, #a8edea 0%, #fed6e3 100%);
+}
+
+/* 主容器 */
+.container {
+    display: flex; /* 左右佈局 */
+    gap: 20px; /* 左右間距 */
+    align-items: flex-start;
+}
+
+/* 左側：數值調整區 */
+.controls {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    text-align: left;
+}
+
+.controls label {
+    display: block;
+    margin-bottom: 15px;
+}
+
+.controls input[type="range"] {
+    width: 100%;
+    margin-top: 5px;
+}
+
+.controls button {
+    width: 100%;
+    padding: 10px;
+    background-image: linear-gradient(to top, #5ee7df 0%, #b490ca 100%);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.controls button:hover {
+    background-image: linear-gradient(to top, #30cfd0 0%, #330867 100%);
+}
+
+/* 右側：畫布 */
+canvas {
+    border: 2px solid #ccc;
+    background-color: #fff;
+    max-width: 800px;
+    max-height: 800px;
+    object-fit: contain; /* 保持原始圖片比例 */
+}
