@@ -6,15 +6,22 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh; /* 確保背景覆蓋整個視窗 */
     background-image: linear-gradient(to top, #a8edea 0%, #fed6e3 100%);
+    background-size: cover; /* 確保背景覆蓋整個畫面 */
+    background-attachment: fixed; /* 背景固定不隨滾動移動 */
+    background-color: #f0f8ff; /* 設置漸變的備選顏色 */
 }
 
 /* 主容器 */
 .container {
     display: flex; /* 左右佈局 */
     gap: 20px; /* 左右間距 */
-    align-items: flex-start;
+    align-items: flex-start; /* 元素對齊頂部 */
+    flex-wrap: wrap; /* 小螢幕時，內容換行 */
+    padding: 20px; /* 增加內邊距 */
+    max-width: 1200px; /* 最大寬度 */
+    margin: auto; /* 水平居中 */
 }
 
 /* 左側：數值調整區 */
@@ -23,20 +30,53 @@ body {
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 0 50px rgba(0, 0, 0, 0.1);
-    width: 300px;
+    width: 100%;
+    max-width: 300px; /* 限制最大寬度 */
     text-align: left;
+    transition: transform 0.2s ease; /* 添加交互動畫 */
 }
 
+/* 滑桿標籤與滑桿之間的樣式 */
 .controls label {
     display: block;
-    margin-bottom: 15px;
+    margin-bottom: 10px; /* 縮小間距 */
+    font-weight: bold; /* 突出標籤文字 */
+    color: #333; /* 深色文字 */
 }
 
 .controls input[type="range"] {
-    width: 100%;
+    width: 100%; /* 滑桿全寬 */
     margin-top: 5px;
+    appearance: none; /* 去除默認樣式 */
+    height: 5px;
+    background: #ddd;
+    border-radius: 5px;
+    outline: none;
+    transition: background 0.3s;
 }
 
+/* 滑桿滑塊樣式 */
+.controls input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    background: #5ee7df;
+    border: 2px solid #b490ca;
+    border-radius: 50%; /* 滑塊圓形 */
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.controls input[type="range"]::-webkit-slider-thumb:hover {
+    background: #30cfd0; /* 滑塊懸停顏色 */
+}
+
+/* 滑桿懸停效果 */
+.controls input[type="range"]:hover {
+    background: #bbb;
+}
+
+/* 按鈕樣式 */
 .controls button {
     width: 100%;
     padding: 10px;
@@ -45,17 +85,56 @@ body {
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease; /* 添加動畫效果 */
 }
 
 .controls button:hover {
     background-image: linear-gradient(to top, #30cfd0 0%, #330867 100%);
+    transform: scale(1.05); /* 放大按鈕 */
 }
 
 /* 右側：畫布 */
 canvas {
     border: 2px solid #ccc;
     background-color: #fff;
-    max-width: 800px;
+    max-width: 100%; /* 畫布寬度適應容器 */
     max-height: 800px;
     object-fit: contain; /* 保持原始圖片比例 */
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 添加陰影 */
+    transition: transform 0.3s ease; /* 畫布動畫效果 */
+}
+
+/* 當滑鼠懸停在畫布上時 */
+canvas:hover {
+    transform: scale(1.02); /* 畫布稍微放大 */
+}
+
+/* 響應式設計：小螢幕調整 */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column; /* 垂直排列 */
+        align-items: center; /* 內容居中 */
+    }
+
+    .controls {
+        max-width: 100%; /* 占滿容器寬度 */
+        margin-bottom: 20px; /* 與畫布之間的間距 */
+    }
+
+    canvas {
+        max-width: 100%; /* 畫布在小螢幕時占滿容器 */
+        max-height: auto; /* 自適應高度 */
+    }
+}
+
+/* 響應式設計：大螢幕時調整內邊距與最大寬度 */
+@media (min-width: 1200px) {
+    .controls {
+        padding: 30px;
+    }
+
+    canvas {
+        max-width: 800px;
+    }
 }
