@@ -1,4 +1,4 @@
-// 獲取 DOM 元素
+// DOM 元素
 const imageInput = document.getElementById("imageInput");
 const pixelSizeInput = document.getElementById("pixelSize");
 const contrastInput = document.getElementById("contrast");
@@ -7,10 +7,17 @@ const canvas = document.getElementById("previewCanvas");
 const ctx = canvas.getContext("2d");
 let image = null;
 
-// 滑桿顯示值
-const pixelValue = document.getElementById("pixelValue");
-const contrastValue = document.getElementById("contrastValue");
-const saturationValue = document.getElementById("saturationValue");
+// 更新滑桿值顯示
+pixelSizeInput.addEventListener("input", updateValues);
+contrastInput.addEventListener("input", updateValues);
+saturationInput.addEventListener("input", updateValues);
+
+function updateValues() {
+    document.getElementById("pixelValue").textContent = pixelSizeInput.value;
+    document.getElementById("contrastValue").textContent = `${contrastInput.value}%`;
+    document.getElementById("saturationValue").textContent = `${saturationInput.value}%`;
+    updateCanvas();
+}
 
 // 上傳圖片
 imageInput.addEventListener("change", (e) => {
@@ -20,10 +27,8 @@ imageInput.addEventListener("change", (e) => {
         reader.onload = (event) => {
             image = new Image();
             image.onload = () => {
-                // 設置畫布大小，保持圖片比例
-                const aspectRatio = image.width / image.height;
-                canvas.width = 800; // 固定寬度
-                canvas.height = canvas.width / aspectRatio; // 高度自適應比例
+                canvas.width = 800;
+                canvas.height = (800 * image.height) / image.width;
                 updateCanvas();
             };
             image.src = event.target.result;
@@ -32,125 +37,81 @@ imageInput.addEventListener("change", (e) => {
     }
 });
 
-// 滑桿調整像素化程度
-pixelSizeInput.addEventListener("input", () => {
-    pixelValue.textContent = pixelSizeInput.value;
-    updateCanvas();
-});
-
-// 滑桿調整對比度
-contrastInput.addEventListener("input", () => {
-    contrastValue.textContent = `${contrastInput.value}%`;
-    updateCanvas();
-});
-
-// 滑桿調整飽和度
-saturationInput.addEventListener("input", () => {
-    saturationValue.textContent = `${saturationInput.value}%`;
-    updateCanvas();
-});
-
 // 更新畫布
 function updateCanvas() {
     if (!image) return;
 
-    const pixelSize = parseInt(pixelSizeInput.value); // 像素大小
-    const contrast = parseFloat(contrastInput.value) / 100; // 對比度比例
-    const saturation = parseFloat(saturationInput.value) / 100; // 飽和度比例
+    const pixelSize = parseInt(pixelSizeInput.value);
+    const contrast = parseFloat(contrastInput.value) / 100;
+    const saturation = parseFloat(saturationInput.value) / 100;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // 清除畫布
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // 建立臨時畫布，縮小圖片
     const tempCanvas = document.createElement("canvas");
     const tempCtx = tempCanvas.getContext("2d");
-
     tempCanvas.width = Math.ceil(canvas.width / pixelSize);
     tempCanvas.height = Math.ceil(canvas.height / pixelSize);
-
-    // 繪製縮小後的圖片
     tempCtx.drawImage(image, 0, 0, tempCanvas.width, tempCanvas.height);
 
-    // 獲取縮小圖片的像素數據
     const imgData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
 
-    // 繪製像素化的圓形
     for (let y = 0; y < tempCanvas.height; y++) {
         for (let x = 0; x < tempCanvas.width; x++) {
-            const index = (y * tempCanvas.width + x) * 4; // 像素的索引
-            let r = imgData.data[index];
-            let g = imgData.data[index + 1];
-            let b = imgData.data[index + 2];
+            const index = (y * tempCanvas.width + x) * 4;
+            let [r, g, b] = [imgData.data[index], imgData.data[index + 1], imgData.data[index + 2]];
 
-            // 將 RGB 轉換為 HSV
+            // 調整飽和度
             const hsv = rgbToHsv(r, g, b);
-            hsv[1] *= saturation; // 調整飽和度
-            const rgb = hsvToRgb(hsv[0], hsv[1], hsv[2]); // 轉換回 RGB
+            hsv[1] *= saturation;
+            const rgb = hsvToRgb(hsv[0], hsv[1], hsv[2]);
+            [r, g, b] = rgb;
 
-            // 應用對比度
-            r = applyContrast(rgb[0], contrast);
-            g = applyContrast(rgb[1], contrast);
-            b = applyContrast(rgb[2], contrast);
+            // 恢復原本的對比度公式
+            r = applyContrast(r, contrast);
+            g = applyContrast(g, contrast);
+            b = applyContrast(b, contrast);
 
-            // 設定填充顏色
+            // 繪製方塊
+            const rectX = x * pixelSize;
+            const rectY = y * pixelSize;
             ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+            ctx.fillRect(rectX, rectY, pixelSize, pixelSize);
 
-            // 繪製圓形像素
+            // 繪製凸點
             ctx.beginPath();
             ctx.arc(
-                x * pixelSize + pixelSize / 2, // 圓心的 X 座標
-                y * pixelSize + pixelSize / 2, // 圓心的 Y 座標
-                pixelSize / 2, // 圓的半徑
+                rectX + pixelSize / 2,
+                rectY + pixelSize / 2,
+                (pixelSize * 0.625) / 2,
                 0,
-                Math.PI * 2 // 繪製整個圓形
+                Math.PI * 2
             );
+            ctx.fillStyle = `rgba(${r * 1.1}, ${g * 1.1}, ${b * 1.1}, 0.9)`;
             ctx.fill();
         }
     }
 }
 
-// 應用對比度的計算公式
+// 應用對比度公式
 function applyContrast(value, contrast) {
-    return Math.min(255, Math.max(0, ((value - 128) * contrast + 128))); // 限制在 0-255 範圍內
+    return Math.min(255, Math.max(0, ((value - 128) * contrast + 128)));
 }
 
-// RGB 轉換為 HSV
+// RGB/HSV 轉換
 function rgbToHsv(r, g, b) {
     r /= 255, g /= 255, b /= 255;
     const max = Math.max(r, g, b), min = Math.min(r, g, b);
-    const d = max - min;
-    const s = max === 0 ? 0 : d / max;
-    const v = max;
-
-    let h;
-    if (max === min) h = 0;
-    else {
-        switch (max) {
-            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-            case g: h = (b - r) / d + 2; break;
-            case b: h = (r - g) / d + 4; break;
-        }
-        h /= 6;
+    const d = max - min, s = max === 0 ? 0 : d / max, v = max;
+    let h = 0;
+    if (max !== min) {
+        h = max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
     }
-    return [h, s, v];
+    return [h / 6, s, v];
 }
 
-// HSV 轉換為 RGB
 function hsvToRgb(h, s, v) {
-    let r, g, b;
-    const i = Math.floor(h * 6);
-    const f = h * 6 - i;
-    const p = v * (1 - s);
-    const q = v * (1 - f * s);
-    const t = v * (1 - (1 - f) * s);
-
-    switch (i % 6) {
-        case 0: r = v, g = t, b = p; break;
-        case 1: r = q, g = v, b = p; break;
-        case 2: r = p, g = v, b = t; break;
-        case 3: r = p, g = q, b = v; break;
-        case 4: r = t, g = p, b = v; break;
-        case 5: r = v, g = p, b = q; break;
-    }
-
+    let r, g, b, i = Math.floor(h * 6), f = h * 6 - i, p = v * (1 - s);
+    const q = v * (1 - f * s), t = v * (1 - (1 - f) * s);
+    [r, g, b] = [[v, t, p], [q, v, p], [p, v, t], [p, q, v], [t, p, v], [v, p, q]][i % 6];
     return [r * 255, g * 255, b * 255];
 }
